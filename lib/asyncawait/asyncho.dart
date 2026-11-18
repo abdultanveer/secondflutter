@@ -1,12 +1,14 @@
-
-import 'dart:io';
-
-void main() async{
-  await hello();
-  print('all done');
+Future<String> createOrderMessage() async {
+  var order = await fetchUserOrder();
+  return 'Your order is: $order';
 }
- Future<void> hello()async{
-  print('hello');
-  sleep(Duration(milliseconds: 5000));
-  print('hello func complete');
- }
+
+Future<String> fetchUserOrder() =>
+    // Imagine that this function is
+// more complex and slow.
+Future.delayed(const Duration(seconds: 2), () => 'Large Latte');
+
+Future<void> main() async {
+  print('Fetching user order...');
+  print(await createOrderMessage());
+}
