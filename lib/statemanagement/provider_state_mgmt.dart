@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'counter_model.dart';
-
+//https://chatgpt.com/share/6afe9586-94b4-83e8-bb83-5e5491a5804e
 void main() {
   runApp(
     ChangeNotifierProvider(
