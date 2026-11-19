@@ -3,31 +3,10 @@ import 'package:secondflutter/storage/database_helper.dart';
 
 import 'model/electricity_bill.dart';
 
-Future<void> main() async {
-
-  WidgetsFlutterBinding.ensureInitialized();
-
-  final db = await DatabaseHelper.database;
-
-  // Create a bill object
-  ElectricityBill bill = ElectricityBill(
-    consumerNumber: '1234567890',
-    consumerName: 'Ramesh',
-    billMonth: 'November 2026',
-    unitsConsumed: 245,
-    billAmount: 1850.50,
-    dueDate: '2026-11-30',
-  );
-
-  // Insert the bill into SQLite
-  int id = await DatabaseHelper.insertBill(bill);
-
-  print('Bill inserted successfully!');
-  print('Generated ID: $id');
-
+void main() {
   runApp(const MyApp());
-
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -100,22 +79,123 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+class BillsPage extends StatefulWidget {
 
-// Bills Screen
-class BillsPage extends StatelessWidget {
   const BillsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'Bills will appear here',
-        style: TextStyle(fontSize: 24),
-      ),
-    );
-  }
+  State<BillsPage> createState() => _BillsPageState();
+
 }
 
+class _BillsPageState extends State<BillsPage> {
+
+  late Future<List<ElectricityBill>> billsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+
+    billsFuture = DatabaseHelper.getAllBills();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    return FutureBuilder<List<ElectricityBill>>(
+      future: billsFuture,
+
+      builder: (context, snapshot) {
+
+        // Loading
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+
+        // Error
+        if (snapshot.hasError) {
+          return Center(
+            child: Text(
+              'Error: ${snapshot.error}',
+            ),
+          );
+        }
+
+        // No bills
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(
+            child: Text(
+              'No bills found',
+              style: TextStyle(fontSize: 20),
+            ),
+          );
+        }
+
+        // Bills available
+        final bills = snapshot.data!;
+
+        return ListView.builder(
+
+          itemCount: bills.length,
+
+          itemBuilder: (context, index) {
+
+            final bill = bills[index];
+
+            return Card(
+              margin: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 6,
+              ),
+
+              child: ListTile(
+
+                leading: const CircleAvatar(
+                  child: Icon(Icons.electric_bolt),
+                ),
+
+                title: Text(bill.consumerName),
+
+                subtitle: Text(
+                  '${bill.billMonth} • ${bill.unitsConsumed} units',
+                ),
+
+                trailing: Text(
+                  '₹${bill.billAmount.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+
+                onTap: () {
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Selected bill ID: ${bill.id}',
+                      ),
+                    ),
+                  );
+
+                },
+
+              ),
+            );
+
+          },
+
+        );
+
+      },
+
+    );
+
+  }
+
+}
 // Add Bill Screen
 class AddBillPage extends StatelessWidget {
   const AddBillPage({super.key});

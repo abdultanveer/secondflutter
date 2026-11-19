@@ -66,6 +66,24 @@ class DatabaseHelper {
       bill.toMap(),
     );
 
+
+
+  }
+
+  static Future<List<ElectricityBill>> getAllBills() async {
+
+    final db = await database;
+
+    final List<Map<String, dynamic>> maps =
+    await db.query('electricity_bills');
+
+    return List.generate(
+      maps.length,
+          (index) {
+        return ElectricityBill.fromMap(maps[index]);
+      },
+    );
+
   }
 
 }
