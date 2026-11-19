@@ -86,4 +86,17 @@ class DatabaseHelper {
 
   }
 
+  static Future<int> updateBill(ElectricityBill bill) async {
+
+    final db = await database;
+
+    return await db.update(
+      'electricity_bills',
+      bill.toMap(),
+      where: 'id = ?',
+      whereArgs: [bill.id],
+    );
+
+  }
+
 }

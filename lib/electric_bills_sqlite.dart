@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:secondflutter/screens/bill_details_page.dart';
 import 'package:secondflutter/storage/database_helper.dart';
 
 import 'model/electricity_bill.dart';
@@ -170,15 +171,26 @@ class _BillsPageState extends State<BillsPage> {
                   ),
                 ),
 
-                onTap: () {
+                onTap: () async {
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Selected bill ID: ${bill.id}',
-                      ),
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return BillDetailsPage(
+                          bill: bill,
+                        );
+                      },
                     ),
                   );
+
+                  if (result == true && mounted) {
+
+                    setState(() {
+                      billsFuture = DatabaseHelper.getAllBills();
+                    });
+
+                  }
 
                 },
 
@@ -197,10 +209,17 @@ class _BillsPageState extends State<BillsPage> {
 
 }
 class AddBillPage extends StatefulWidget {
-  const AddBillPage({super.key});
+
+  final ElectricityBill? bill;
+
+  const AddBillPage({
+    super.key,
+    this.bill,
+  });
 
   @override
   State<AddBillPage> createState() => _AddBillPageState();
+
 }
 
 class _AddBillPageState extends State<AddBillPage> {
@@ -215,6 +234,36 @@ class _AddBillPageState extends State<AddBillPage> {
   final dueDateController = TextEditingController();
 
   bool paid = false;
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.bill != null) {
+
+      consumerNumberController.text =
+          widget.bill!.consumerNumber;
+
+      consumerNameController.text =
+          widget.bill!.consumerName;
+
+      billMonthController.text =
+          widget.bill!.billMonth;
+
+      unitsController.text =
+          widget.bill!.unitsConsumed.toString();
+
+      amountController.text =
+          widget.bill!.billAmount.toString();
+
+      dueDateController.text =
+          widget.bill!.dueDate;
+
+      paid = widget.bill!.paid;
+
+    }
+  }
+
+
 
   @override
   void dispose() {
@@ -236,6 +285,8 @@ class _AddBillPageState extends State<AddBillPage> {
     }
 
     ElectricityBill bill = ElectricityBill(
+      id: widget.bill?.id,
+
       consumerNumber: consumerNumberController.text,
       consumerName: consumerNameController.text,
       billMonth: billMonthController.text,
@@ -245,30 +296,56 @@ class _AddBillPageState extends State<AddBillPage> {
       paid: paid,
     );
 
-    int id = await DatabaseHelper.insertBill(bill);
+    int result;
+
+    if (widget.bill == null) {
+
+      // CREATE
+      result = await DatabaseHelper.insertBill(bill);
+
+    } else {
+
+      // UPDATE
+      result = await DatabaseHelper.updateBill(bill);
+
+    }
 
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Bill saved successfully! ID: $id'),
+        content: Text(
+          widget.bill == null
+              ? 'Bill added successfully!'
+              : 'Bill updated successfully!',
+        ),
       ),
     );
 
-    _formKey.currentState!.reset();
+    if (widget.bill == null) {
 
-    consumerNumberController.clear();
-    consumerNameController.clear();
-    billMonthController.clear();
-    unitsController.clear();
-    amountController.clear();
-    dueDateController.clear();
+      // Clear form after inserting
+      _formKey.currentState!.reset();
 
-    setState(() {
-      paid = false;
-    });
+      consumerNumberController.clear();
+      consumerNameController.clear();
+      billMonthController.clear();
+      unitsController.clear();
+      amountController.clear();
+      dueDateController.clear();
+
+      setState(() {
+        paid = false;
+      });
+
+    } else {
+
+      // Return to previous screen after editing
+      Navigator.pop(context, true);
+
+    }
+
   }
-
   @override
   Widget build(BuildContext context) {
 
@@ -419,7 +496,11 @@ class _AddBillPageState extends State<AddBillPage> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: saveBill,
-                child: const Text('Save Bill'),
+                child: Text(
+                  widget.bill == null
+                      ? 'Save Bill'
+                      : 'Update Bill',
+                ),
               ),
             ),
 
