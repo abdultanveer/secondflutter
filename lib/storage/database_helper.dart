@@ -97,6 +97,16 @@ class DatabaseHelper {
       whereArgs: [bill.id],
     );
 
+  }static Future<int> deleteBill(int id) async {
+    final db = await database;
+
+    return await db.delete(
+      'electricity_bills',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
+
+
 
 }

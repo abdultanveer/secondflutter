@@ -3,7 +3,7 @@ import 'package:secondflutter/screens/bill_details_page.dart';
 import 'package:secondflutter/storage/database_helper.dart';
 
 import 'model/electricity_bill.dart';
-
+//https://chatgpt.com/share/6afecb2e-6c7c-83ee-bd9a-86b201519c0c
 void main() {
   runApp(const MyApp());
 }
@@ -48,6 +48,67 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        actions: [
+          // Edit button
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return AddBillPage(bill: bill);
+                  },
+                ),
+              );
+
+              if (result == true && context.mounted) {
+                Navigator.pop(context, true);
+              }
+            },
+          ),
+
+          // Delete button
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text('Delete Bill?'),
+                    content: const Text(
+                      'Are you sure you want to delete this bill?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context, false);
+                        },
+                        child: const Text('Cancel'),
+                      ),
+
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context, true);
+                        },
+                        child: const Text('Delete'),
+                      ),
+                    ],
+                  );
+                },
+              );
+
+              if (confirm == true) {
+                await DatabaseHelper.deleteBill(bill.id!);
+
+                if (context.mounted) {
+                  Navigator.pop(context, true);
+                }
+              }
+            },
+          ),
+        ],
         title: const Text('Electricity Bills'),
       ),
 
