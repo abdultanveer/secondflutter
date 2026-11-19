@@ -6,6 +6,15 @@ import 'dart:convert';
 import '../model/album.dart';
 import 'package:http/http.dart' as http;
 
+
+/*
+* CRUD
+* Create  -- POST
+* READ    --GET  http.get
+* UPDATE  --PUT
+* DELETE  --DELETE
+* */
+
 Future<Album> fetchAlbum() async {
   final response = await http.get(
     Uri.parse('https://jsonplaceholder.typicode.com/albums/1'),
