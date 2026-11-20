@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 
 
 class Counter {
-  int value = 0;
+  int value = 10;
 
   void increment() => value++;
 
